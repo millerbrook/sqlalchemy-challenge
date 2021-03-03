@@ -19,7 +19,8 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # Save reference to the table
-Passenger = Base.classes.passenger
+Measurement = Base.classes.Measurement
+Station = Base.classes.station
 
 
 # Flask Setup
@@ -40,7 +41,7 @@ def welcome():
 
 @app.route("/api/v1.0/precipitation")
 def precips():
-    # Design a query to retrieve the last 12 months of precipitation data and plot the results. 
+    # Design a query to retrieve the last 12 months of precipitation data. 
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     datetest = datetime.strptime(test[0], "%Y-%m-%d").date()
@@ -80,23 +81,55 @@ def stations():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    """Return a list of passenger data including the name, age, and sex of each passenger"""
-    # Query all passengers
-    results = session.query(Passenger.name, Passenger.age, Passenger.sex).all()
+    results = session.query(Station.station)
 
     session.close()
 
-    # Create a dictionary from the row data and append to a list of all_passengers
-    all_passengers = []
-    for name, age, sex in results:
-        passenger_dict = {}
-        passenger_dict["name"] = name
-        passenger_dict["age"] = age
-        passenger_dict["sex"] = sex
-        all_passengers.append(passenger_dict)
+    return jsonify(results)
 
-    return jsonify(all_passengers)
+@app.route("/api/v1.0/tobs")
+    def tempObs():
+        #Rank stations by count in descending order
+        station_counts = session.query(Measurement.station, func.count(Measurement.station)).group_by(Measurement.station).order_by(func.count(Measurement.station).desc()).all()
+        #Choose first station
+        most_active_station = station_counts[0][0]
+        #Query dates and temps associated with this station
+        #Note it repeats lots of earlier query process--is this what is wanted?
+        # Design a query to retrieve the last 12 months of precipitation data. 
+        test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
+        datetest = datetime.strptime(test[0], "%Y-%m-%d").date()
+        type(datetest)
+        # Starting from the most recent data point in the database. 
 
+        # # Calculate the date one year from the last date in data set.
+        year_ago = datetest - dt.timedelta(days=365)
+        print(year_ago)
+        # Perform a query to retrieve the data and temperature scores
+        datestrings = session.query(Measurement.date).\
+            filter(Measurement.date > year_ago).\
+            filter(Measurement.station==most_active_station).\
+            order_by(Measurement.date).all()
+
+        dates = []
+        for onedate in datestrings:
+            convert = datetime.strptime(onedate[0], "%Y-%m-%d").date()
+            dates.append(convert)
+
+        temperatures = session.query(Measurement.tobs).\
+            filter(Measurement.date > year_ago).\
+            filter(Measurement.station == most_active_station).\
+            order_by(Measurement.date).all()
+
+        temp_list = []
+        for onetemp in temperatures:
+            temp_list.append(onetemp[0])
+
+        activeStation_dict = {k:v for k,v in zip(dates,temp_list)}
+
+        session.close()
+
+        return jsonify(activeStation_dict)
+        
 if __name__ == '__main__':
     app.run(debug=True)
