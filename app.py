@@ -156,11 +156,11 @@ def sinceStart(start):
         avgTemp = session.query(func.avg(Measurement.tobs).filter(Measurement.date >= start).first()
     except:
         avgTemp = ""
-        
+
     #Close out the session
     session.close()
 
-    return maxTemp, minTemp, avgTemp 
+    return f"Since {start}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}"" 
 
 @app.route("/api/v1.0/<start>/<end>")
 def startEnd(start, end):
@@ -184,7 +184,7 @@ def startEnd(start, end):
     #Close out the session
     session.close()
 
-    return maxTemp, minTemp, avgTemp 
+    return f"Between {start} and {end}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}""
 
 if __name__ == '__main__':
     app.run(debug=True)
