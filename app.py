@@ -48,12 +48,11 @@ def precips():
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     datetest = datetime.strptime(test[0], "%Y-%m-%d").date()
-    type(datetest)
     # Starting from the most recent data point in the database. 
 
     # # Calculate the date one year from the last date in data set.
     year_ago = datetest - dt.timedelta(days=365)
-    print(year_ago)
+    
     # Perform a query to retrieve the data and precipitation scores
     datestrings = session.query(Measurement.date).\
         filter(Measurement.date > year_ago).\
@@ -146,12 +145,16 @@ def sinceStart(start):
     #use func
     try:
         maxTemp = session.query(func.max(Measurement.tobs).filter(Measurement.date >= start).first()
+    
     except:
         maxTemp = "Sorry I didn't recognize the date"
+    
     try:
         minTemp = session.query(func.min(Measurement.tobs).filter(Measurement.date >= start).first()
+    
     except:
         minTemp = ""
+    
     try:
         avgTemp = session.query(func.avg(Measurement.tobs).filter(Measurement.date >= start).first()
     except:
