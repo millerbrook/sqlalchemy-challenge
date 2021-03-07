@@ -46,14 +46,15 @@ def precips():
     session = Session(engine)
 
     # Design a query to retrieve the last 12 months of precipitation data. 
+    # Starting from the most recent data point in the database. 
+
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     datetest = dt.strptime(test[0], "%Y-%m-%d").date()
-    # Starting from the most recent data point in the database. 
-
-    # # Calculate the date one year from the last date in data set.
+   
+    # Calculate the date one year from the last date in data set.
     year_ago = datetest - datetime.timedelta(days=365)
-    
+    year_ago = year_ago.strftime('%y-%m-%d')
     # Perform a query to retrieve the data and precipitation scores
     datestrings = session.query(Measurement.date).\
         filter(Measurement.date > year_ago).\
@@ -61,7 +62,7 @@ def precips():
 
     dates = []
     for onedate in datestrings:
-        dates.append(onedate)
+        dates.append(onedate[0])
 
     measurements = session.query(Measurement.prcp).\
         filter(Measurement.date > year_ago).\
@@ -71,7 +72,7 @@ def precips():
     for onemeasure in measurements:
         measures.append(onemeasure[0])
 
-    precip_dict = {k:v for k,v in zip(dates,measures)}
+    precip_dict = {dates[i]:measurements[i] for i in range(len(dates))}
 
     session.close()
 
