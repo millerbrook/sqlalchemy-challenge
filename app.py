@@ -1,5 +1,6 @@
 import numpy as np
-
+from datetime import datetime as dt
+import datetime
 import sqlalchemy
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
@@ -19,7 +20,7 @@ Base = automap_base()
 Base.prepare(engine, reflect=True)
 
 # Save reference to the table
-Measurement = Base.classes.Measurement
+Measurement = Base.classes.measurement
 Station = Base.classes.station
 
 
@@ -47,11 +48,11 @@ def precips():
     # Design a query to retrieve the last 12 months of precipitation data. 
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
-    datetest = datetime.strptime(test[0], "%Y-%m-%d").date()
+    datetest = dt.strptime(test[0], "%Y-%m-%d").date()
     # Starting from the most recent data point in the database. 
 
     # # Calculate the date one year from the last date in data set.
-    year_ago = datetest - dt.timedelta(days=365)
+    year_ago = datetest - datetime.timedelta(days=365)
     
     # Perform a query to retrieve the data and precipitation scores
     datestrings = session.query(Measurement.date).\
@@ -60,8 +61,7 @@ def precips():
 
     dates = []
     for onedate in datestrings:
-        convert = datetime.strptime(onedate[0], "%Y-%m-%d").date()
-        dates.append(convert)
+        dates.append(onedate)
 
     measurements = session.query(Measurement.prcp).\
         filter(Measurement.date > year_ago).\
@@ -103,12 +103,12 @@ def tempObs():
     # Design a query to retrieve the last 12 months of precipitation data. 
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
-    datetest = datetime.strptime(test[0], "%Y-%m-%d").date()
+    datetest = dt.strptime(test[0], "%Y-%m-%d").date()
     type(datetest)
     # Starting from the most recent data point in the database. 
 
     # # Calculate the date one year from the last date in data set.
-    year_ago = datetest - dt.timedelta(days=365)
+    year_ago = datetest - datetime.timedelta(days=365)
     print(year_ago)
     # Perform a query to retrieve the data and temperature scores
     datestrings = session.query(Measurement.date).\
@@ -118,7 +118,7 @@ def tempObs():
 
     dates = []
     for onedate in datestrings:
-        convert = datetime.strptime(onedate[0], "%Y-%m-%d").date()
+        convert = dt.strptime(onedate[0], "%Y-%m-%d").date()
         dates.append(convert)
 
     temperatures = session.query(Measurement.tobs).\
@@ -144,26 +144,24 @@ def sinceStart(start):
     #Queries to calculate TMIN, TAVG, and TMAX since start date
     #use func
     try:
-        maxTemp = session.query(func.max(Measurement.tobs).filter(Measurement.date >= start).first()
-    
-    except:
-        maxTemp = "Sorry I didn't recognize the date"
-    
+        maxTemp = session.query(func.max(Measurement.tobs)).filter(Measurement.date >= start).first()
+    except: 
+        maxTemp = "Sorry I didn't recognize the dates"
     try:
-        minTemp = session.query(func.min(Measurement.tobs).filter(Measurement.date >= start).first()
+        minTemp = session.query(func.min(Measurement.tobs)).filter(Measurement.date >= start).first()
     
     except:
         minTemp = ""
     
     try:
-        avgTemp = session.query(func.avg(Measurement.tobs).filter(Measurement.date >= start).first()
+        avgTemp = session.query(func.avg(Measurement.tobs)).filter(Measurement.date >= start).first()
     except:
         avgTemp = ""
 
     #Close out the session
     session.close()
 
-    return f"Since {start}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}"" 
+    return f"Since {start}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}" 
 
 @app.route("/api/v1.0/<start>/<end>")
 def startEnd(start, end):
@@ -172,22 +170,22 @@ def startEnd(start, end):
     #Queries to calculate TMIN, TAVG, and TMAX since start date
     #use func
     try:
-        maxTemp = session.query(func.max(Measurement.tobs).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
+        maxTemp = session.query(func.max(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
     except:
         maxTemp = "Sorry I didn't recognize the dates"
     try:
-        minTemp = session.query(func.min(Measurement.tobs).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
+        minTemp = session.query(func.min(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
     except:
         minTemp = ""
     try:
-        avgTemp = session.query(func.avg(Measurement.tobs).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
+        avgTemp = session.query(func.avg(Measurement.tobs)).filter(Measurement.date >= start).filter(Measurement.date <= end).first()
     except:
         avgTemp = ""
 
     #Close out the session
     session.close()
 
-    return f"Between {start} and {end}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}""
+    return f"Between {start} and {end}, maximum Temperature is {maxTemp}, minimum temperature is {minTemp}, and average temperature is {avgTemp}"
 
 if __name__ == '__main__':
     app.run(debug=True)
