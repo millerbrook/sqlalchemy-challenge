@@ -105,22 +105,21 @@ def tempObs():
     test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
 
     datetest = dt.strptime(test[0], "%Y-%m-%d").date()
-    type(datetest)
-    # Starting from the most recent data point in the database. 
-
-    # # Calculate the date one year from the last date in data set.
+   
+    # Calculate the date one year from the last date in data set.
     year_ago = datetest - datetime.timedelta(days=365)
-    print(year_ago)
-    # Perform a query to retrieve the data and temperature scores
+    year_ago = year_ago.strftime('%y-%m-%d')
+    # Perform a query to retrieve the data and precipitation scores
     datestrings = session.query(Measurement.date).\
         filter(Measurement.date > year_ago).\
-        filter(Measurement.station==most_active_station).\
+        filter(Measurement.station == most_active_station).\
         order_by(Measurement.date).all()
 
     dates = []
     for onedate in datestrings:
-        convert = dt.strptime(onedate[0], "%Y-%m-%d").date()
-        dates.append(convert)
+        dates.append(onedate[0])
+
+    # Starting from the most recent data point in the database. 
 
     temperatures = session.query(Measurement.tobs).\
         filter(Measurement.date > year_ago).\
@@ -131,7 +130,7 @@ def tempObs():
     for onetemp in temperatures:
         temp_list.append(onetemp[0])
 
-    activeStation_dict = {k:v for k,v in zip(dates,temp_list)}
+    activeStation_dict = {dates[i]:temp_list[i] for i in range (len(dates))}
 
     #Close out the session
     session.close()
