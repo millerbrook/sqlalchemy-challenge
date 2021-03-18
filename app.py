@@ -51,9 +51,7 @@ def precips():
     # Design a query to retrieve the last 12 months of precipitation data. 
     # Starting from the most recent data point in the database. 
 
-    test = session.query(Measurement.date).order_by(Measurement.date.desc()).first()
-
-    datetest = dt.strptime(test[0], "%Y-%m-%d").date()
+    datetest = session.query(Measurement.date).order_by(Measurement.date.desc()).first()[0]
    
     # Calculate the date one year from the last date in data set.
     year_ago = datetest - datetime.timedelta(days=365)
@@ -87,11 +85,13 @@ def stations():
     # Create our session (link) from Python to the DB
     session = Session(engine)
 
-    results = session.query(Station.station)
+    results = session.query(Station.station).all()
 
     session.close()
 
-    return jsonify(results)
+    station = list(np.ravel(results))
+
+    return jsonify(stations=station)
 
 @app.route("/api/v1.0/tobs")
 def tempObs():
